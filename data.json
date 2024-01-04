@@ -1,0 +1,53 @@
+{
+  "type": "Compass Connections",
+  "version": {
+    "$numberInt": "1"
+  },
+  "connections": [
+    {
+      "id": "9dc4571f-7cdc-4edb-aca5-e81e31fec212",
+      "connectionOptions": {
+        "connectionString": "mongodb+srv://ibetoharrisonchinonso:Goldmedals%405@cluster0.dbtrbd1.mongodb.net/"
+      },
+      "favorite": {
+        "name": "cluster0",
+        "color": "color3"
+      },
+      "lastUsed": {
+        "$date": {
+          "$numberLong": "1701547170083"
+        }
+      }
+    },
+    {
+      "id": "efcdd75c-da24-412e-bf4f-aaab46d440a5",
+      "connectionOptions": {
+        "connectionString": "mongodb+srv://ibetoharrisonchinonso:Goldmedals%405@cluster0.pljmrbf.mongodb.net/"
+      },
+      "favorite": {
+        "name": "clu",
+        "color": "color9"
+      },
+      "lastUsed": {
+        "$date": {
+          "$numberLong": "1701549724094"
+        }
+      }
+    },
+    {
+      "id": "981013b0-fa16-48c3-ab3b-b7c749f33ca3",
+      "connectionOptions": {
+        "connectionString": "mongodb://localhost:27017/"
+      },
+      "favorite": {
+        "name": "harry",
+        "color": "color1"
+      },
+      "lastUsed": {
+        "$date": {
+          "$numberLong": "1701637483381"
+        }
+      }
+    }
+  ]
+}
