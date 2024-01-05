@@ -135,7 +135,7 @@ router.post("/payment", authenticateToken, isAdminAuth, addPaymentMethod);
 router.get("/payment", getPaymentMethod);
 router.get("/site", fetchSite);
 router.put("/site", authenticateToken, isAdminAuth, editSite);
-router.get("/rate", fetchRate);
+router.get("/rate",authenticateToken, fetchRate);
 router.get("/referral", authenticateToken, fetchRefEarnings);
 router.post("/support", messageSupport);
 router.get("/support", authenticateToken, isAdminAuth, fetchSupportMsg);
