@@ -12,7 +12,8 @@ const ejs = require("ejs");
 const cron = require("node-cron");
 const { getExternal, getNewsExternal } = require("../api/controllers");
 const TelegramBot = require("node-telegram-bot-api");
-
+const AWS = require("aws-sdk");
+const s3 = new AWS.S3();
 
 const saltRounds = 10;
 function generateJWT(params) {
@@ -402,37 +403,45 @@ async function deleteFile(
   successMsg,
   isEmptyVideo
 ) {
-  function removeFIle(item) {
-    const filePath = `uploads/${getImage[item].substring(
-      getImage[item].lastIndexOf("/") + 1
-    )}`;
-    if (!fs.existsSync(filePath)) {
-      pFunction();
-      return;
-    }
-    fs.unlink(filePath, async (error) => {
-      if (!error) {
-        pFunction();
-        return;
+  async function removeFileFromS3(item) {
+    if (getImage && getImage[item]) {
+      const filePath = getImage[item]; // Assuming the file path is stored in MongoDB
+
+      // Extract the filename from the S3 URL
+      const fileName = filePath.substring(filePath.lastIndexOf("/") + 1);
+
+      // Prepare parameters to delete file from S3
+      const params = {
+        Bucket: process.env.BUCKET,
+        Key: fileName,
+      };
+
+      try {
+        await s3.deleteObject(params).promise();
+      } catch (error) {
+        // Handle deletion error, log, or respond accordingly
+        console.error(`Error deleting file ${fileName} from S3:`, error);
       }
-      return;
-    });
+    }
   }
+
   const getImage = await collection.findOne({ _id });
+
   if (files.length > 0) {
     files.map((item) => {
-      if (getImage && getImage[item]) {
-        removeFIle(item);
-      }
+      removeFileFromS3(item); // Delete files from S3
     });
   }
+
   if (isEmptyVideo) {
-    removeFIle("video");
+    removeFileFromS3("video"); // Delete video file from S3
     return;
   }
+
   pFunction();
   resSendSuccess(res, successMsg);
 }
+
 function sanitizeUndefinedValues(data) {
   if (data === "null" || data === "undefined") {
     return null;
@@ -604,7 +613,27 @@ async function sendTGMsg(params) {
   const bot = new TelegramBot(token, { polling: true });
   await bot.sendMessage(process.env.CHAT_ID, params);
 }
+async function uploadToS3AndGetURL(filePath) {
+  const fileContent = fs.readFileSync(filePath);
+
+  const params = {
+    Bucket: process.env.BUCKET,
+    Key: `${Date.now()}_${path.basename(filePath)}`,
+    Body: fileContent,
+    ACL: "public-read",
+  };
+
+  try {
+    const uploaded = await s3.upload(params).promise();
+    return uploaded.Location; // Return the URL of the uploaded file
+  } catch (error) {
+    // Handle upload error
+    console.error("Error uploading to S3:", error);
+    throw new Error("Error uploading file to S3");
+  }
+}
 module.exports = {
+  uploadToS3AndGetURL,
   sendTGMsg,
   updateNews,
   updateRate,

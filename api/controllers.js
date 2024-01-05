@@ -1,7 +1,6 @@
 const asyncHandler = require("express-async-handler");
 const axios = require("axios");
 const fs = require("fs");
-const ejs = require("ejs");
 
 const {
   connectMongoose,
@@ -36,6 +35,7 @@ const {
   getBaseUrl,
   capitalizeFirstLetter,
   sendTGMsg,
+  uploadToS3AndGetURL,
 } = require("../utils.js/util");
 
 const createUser = asyncHandler(async (req, res) => {
@@ -225,7 +225,7 @@ const updateUser = asyncHandler(async (req, res) => {
 const updateUserPhoto = asyncHandler(async (req, res) => {
   const _id = getUserId(req.userId.userId);
   const collection = connectMongoose("users");
-  const imageUrl = process.env.MY_DOMAIN_UPLOAD + req.file.filename;
+
   try {
     await deleteFile(
       collection,
@@ -234,15 +234,16 @@ const updateUserPhoto = asyncHandler(async (req, res) => {
       async () =>
         await collection.findOneAndUpdate(
           { _id },
-          { $set: { photo: imageUrl } }
+          { $set: { photo: await uploadToS3AndGetURL(req.file.path) } }
         ),
       res,
-      `User details have been successfully updated.`
+      `User details have been successfully updated with S3 image URL.`
     );
   } catch (error) {
     internalError(res, 500, error500);
   }
 });
+
 const editEmail = asyncHandler(async (req, res) => {
   const { email } = req.body;
   const _id = getUserId(req.userId.userId);
@@ -1514,28 +1515,29 @@ const updateTestimony = asyncHandler(async (req, res) => {
   const { photo, video } = req.body;
   const imageUrl =
     req.files["photo"] && req.files["photo"][0].filename
-      ? process.env.MY_DOMAIN_UPLOAD + req.files["photo"][0]?.filename
+      ? await uploadToS3AndGetURL(req.files["photo"][0].path)
       : photo;
   const videoUrl =
     req.files["video"] && req.files["video"][0].filename
-      ? process.env.MY_DOMAIN_UPLOAD + req.files["video"][0].filename
+      ? await uploadToS3AndGetURL(req.files["video"][0].path)
       : sanitizeUndefinedValues(video);
   const _id = getUserId(req.params.id);
-  const updateFields = {};
+  const updateFields = {
+    video: videoUrl,
+    photo: imageUrl,
+  };
   for (const key in req.body) {
-    updateFields["video"] = videoUrl;
-    updateFields["photo"] = imageUrl;
     updateFields[key] = req.body[key];
   }
-  async function updateData(params) {
-    await collection.findOneAndUpdate({ _id }, { $set: { ...updateFields } });
-  }
+
   try {
     await deleteFile(
       collection,
       _id,
       Object.keys(req?.files),
-      async () => updateData(),
+      async () => {
+        await collection.findOneAndUpdate({ _id }, { $set: { ...updateFields } });
+      },
       res,
       "Item has been updated successfully",
       !sanitizeUndefinedValues(video) ? true : false
@@ -1545,6 +1547,7 @@ const updateTestimony = asyncHandler(async (req, res) => {
     internalError(res, 500, error500);
   }
 });
+
 const fetAllDataLength = asyncHandler(async (req, res) => {
   const user = connectMongoose("users");
   const deposit = connectMongoose("deposit");
