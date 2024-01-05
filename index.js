@@ -28,3 +28,7 @@ server.listen(
   console.log(`Server running on PORT ${PORT}...`.yellow.bold)
 );
 
+// git add .
+// git commit -m "Updated dependencies to address vulnerabilities"
+// git push origin main
+

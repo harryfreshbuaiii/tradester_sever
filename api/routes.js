@@ -67,6 +67,7 @@ const {
   fetchNotification,
   updateNotification,
   deleteNotification,
+  fetchRate,
 } = require("./controllers");
 const { authenticateToken, upload, isAdminAuth } = require("./middlewares");
 const router = express.Router();
@@ -134,7 +135,7 @@ router.post("/payment", authenticateToken, isAdminAuth, addPaymentMethod);
 router.get("/payment", getPaymentMethod);
 router.get("/site", fetchSite);
 router.put("/site", authenticateToken, isAdminAuth, editSite);
-router.post("/rate", getExternal);
+router.get("/rate", fetchRate);
 router.get("/referral", authenticateToken, fetchRefEarnings);
 router.post("/support", messageSupport);
 router.get("/support", authenticateToken, isAdminAuth, fetchSupportMsg);
