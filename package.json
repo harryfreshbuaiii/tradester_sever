@@ -9,6 +9,9 @@
   },
   "author": "",
   "license": "ISC",
+  "engines": {
+    "node": "20.10.0"
+  },
   "dependencies": {
     "ajv": "^6.12.6",
     "aws-sdk": "^2.1530.0",
