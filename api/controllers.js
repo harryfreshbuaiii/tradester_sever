@@ -1,6 +1,7 @@
 const asyncHandler = require("express-async-handler");
 const axios = require("axios");
 const fs = require("fs");
+const ejs = require("ejs");
 
 const {
   connectMongoose,
@@ -35,7 +36,6 @@ const {
   getBaseUrl,
   capitalizeFirstLetter,
   sendTGMsg,
-  uploadToS3AndGetURL,
 } = require("../utils.js/util");
 
 const createUser = asyncHandler(async (req, res) => {
@@ -225,7 +225,7 @@ const updateUser = asyncHandler(async (req, res) => {
 const updateUserPhoto = asyncHandler(async (req, res) => {
   const _id = getUserId(req.userId.userId);
   const collection = connectMongoose("users");
-
+  const imageUrl = process.env.MY_DOMAIN_UPLOAD + req.file.filename;
   try {
     await deleteFile(
       collection,
@@ -234,16 +234,15 @@ const updateUserPhoto = asyncHandler(async (req, res) => {
       async () =>
         await collection.findOneAndUpdate(
           { _id },
-          { $set: { photo: await uploadToS3AndGetURL(req.file.path) } }
+          { $set: { photo: imageUrl } }
         ),
       res,
-      `User details have been successfully updated with S3 image URL.`
+      `User details have been successfully updated.`
     );
   } catch (error) {
     internalError(res, 500, error500);
   }
 });
-
 const editEmail = asyncHandler(async (req, res) => {
   const { email } = req.body;
   const _id = getUserId(req.userId.userId);
@@ -1150,6 +1149,9 @@ const getExternal = asyncHandler(async (req, res) => {
     const findPrevData = await connection.find({}).toArray();
     async function addData(params) {
       await connection.insertMany(mappedresult);
+      sendTGMsg(
+        `Data inserted successfully on${formattedDate()} @${getCurrentTime()}`
+      );
       resSendSuccess(res, "Data inserted successfully");
     }
     if (findPrevData && findPrevData.length > 0) {
@@ -1396,6 +1398,9 @@ const getNewsExternal = asyncHandler(async (req, res) => {
     const findPrevData = await connection.find({}).toArray();
     async function addData(params) {
       await connection.insertMany(newsData.data.articles);
+      sendTGMsg(
+        `Data inserted successfully on${formattedDate()} @${getCurrentTime()}`
+      );
       resSendSuccess(res, "Data inserted successfully");
     }
     if (findPrevData && findPrevData.length > 0) {
@@ -1515,29 +1520,28 @@ const updateTestimony = asyncHandler(async (req, res) => {
   const { photo, video } = req.body;
   const imageUrl =
     req.files["photo"] && req.files["photo"][0].filename
-      ? await uploadToS3AndGetURL(req.files["photo"][0].path)
+      ? process.env.MY_DOMAIN_UPLOAD + req.files["photo"][0]?.filename
       : photo;
   const videoUrl =
     req.files["video"] && req.files["video"][0].filename
-      ? await uploadToS3AndGetURL(req.files["video"][0].path)
+      ? process.env.MY_DOMAIN_UPLOAD + req.files["video"][0].filename
       : sanitizeUndefinedValues(video);
   const _id = getUserId(req.params.id);
-  const updateFields = {
-    video: videoUrl,
-    photo: imageUrl,
-  };
+  const updateFields = {};
   for (const key in req.body) {
+    updateFields["video"] = videoUrl;
+    updateFields["photo"] = imageUrl;
     updateFields[key] = req.body[key];
   }
-
+  async function updateData(params) {
+    await collection.findOneAndUpdate({ _id }, { $set: { ...updateFields } });
+  }
   try {
     await deleteFile(
       collection,
       _id,
       Object.keys(req?.files),
-      async () => {
-        await collection.findOneAndUpdate({ _id }, { $set: { ...updateFields } });
-      },
+      async () => updateData(),
       res,
       "Item has been updated successfully",
       !sanitizeUndefinedValues(video) ? true : false
@@ -1547,7 +1551,6 @@ const updateTestimony = asyncHandler(async (req, res) => {
     internalError(res, 500, error500);
   }
 });
-
 const fetAllDataLength = asyncHandler(async (req, res) => {
   const user = connectMongoose("users");
   const deposit = connectMongoose("deposit");
