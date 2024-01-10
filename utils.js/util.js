@@ -62,22 +62,22 @@ async function sendEmail(
     const social_icons = [
       {
         name: "facebook",
-        svg: url + "facebook.svg",
+        svg: url + "facebook.png",
         url: null,
       },
       {
         name: "whatsapp",
-        svg: url + "whatsapp.svg",
+        svg: url + "whatsapp.png",
         url: "https://wa.me/" + findLogo.phone,
       },
       {
         name: "tiktok",
-        svg: url + "tiktok.svg",
+        svg: url + "tiktok.png",
         url: null,
       },
       {
         name: "telegram",
-        svg: url + "telegram.svg",
+        svg: url + "telegram.png",
         url: "https://t.me/" + findLogo.telegram,
       },
     ];
