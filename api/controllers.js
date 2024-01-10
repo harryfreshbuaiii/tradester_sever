@@ -41,17 +41,18 @@ const {
 const createUser = asyncHandler(async (req, res) => {
   const collection = connectMongoose("users");
   const collectionSite = connectMongoose("site");
-  const userCountry = await axios.get("https://ipapi.co/json");
-  const { password, email, referral, name } = req.body;
+
+  const { password, email, referral, name, countryCode, currency, country } =
+    req.body;
   const data = {
     balance: "0.00",
     photo: generatePic(),
     date: formattedDate(),
     time: getCurrentTime(),
     isEmailVerified: false,
-    country: userCountry.data.country_name,
-    countryCode: userCountry.data.country_code,
-    currency: userCountry.data.currency,
+    country,
+    countryCode,
+    currency,
     isAdmin: false,
     referral,
     my_ref_id: generateRandomAlphanumericCode(9),
@@ -177,6 +178,14 @@ const logIn = asyncHandler(async (req, res) => {
   try {
     const getPassword = await collection.findOne({ email });
     if (getPassword) {
+      if (!getPassword.isEmailVerified) {
+        internalError(
+          res,
+          400,
+          `Your email must be verified to continue. Proceed to <a class="base--color" href=${process.env.MY_DOMAIN}/resend-email>verify email</a>.`
+        );
+        return;
+      }
       const JWTToken = generateJWT(getPassword._id);
       await comparePassword(
         password,
@@ -539,11 +548,21 @@ const getWithdraw = asyncHandler(async (req, res) => {
 });
 const getAllWithdraw = asyncHandler(async (req, res) => {
   const collection = connectMongoose("withdraw");
+  const collectionUsers = connectMongoose("users");
   try {
     const result = await collection.find({}).toArray();
-    const data = result.map((r) => excludeItems(r, ["_id"]));
+    const data = await Promise.all(
+      result.map(async (r) => {
+        const d = await collectionUsers.findOne({ email: r.email });
+        return {
+          ...r,
+          address: d.address,
+        };
+      })
+    );
     resSendSuccess(res, "", sortByDateTime(data));
   } catch (error) {
+    console.log(error);
     internalError(res, 500, error500);
   }
 });
