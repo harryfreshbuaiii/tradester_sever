@@ -991,7 +991,7 @@ console.log(getPlan.durationInSecs)
         profit.profit,
         refProfit.addedValue
       );
-    }, getPlan.durationInSecs);
+    }, getPlan.durationInSecs*1000);
     await addNotification(
       ` New ${plan} Activated`,
       `You've successfully activated a ${plan} plan with $${amount}.`,
