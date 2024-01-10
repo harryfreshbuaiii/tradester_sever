@@ -991,7 +991,7 @@ const createInvesment = asyncHandler(async (req, res) => {
         profit.profit,
         refProfit.addedValue
       );
-    }, 1000 * 2 * 60 || getPlan.durationInSecs);
+    }, getPlan.durationInSecs);
     await addNotification(
       ` New ${plan} Activated`,
       `You've successfully activated a ${plan} plan with $${amount}.`,
