@@ -981,7 +981,7 @@ const createInvesment = asyncHandler(async (req, res) => {
       { _id: userId },
       { $set: { balance: String(Number(balance - Number(amount))) } }
     );
-
+console.log(getPlan.durationInSecs)
     setTimeout(() => {
       addUsersProfit(
         userId,
