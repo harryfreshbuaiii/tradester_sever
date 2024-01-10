@@ -296,7 +296,7 @@ async function addUsersProfit(userId, id, getPlan, amount, profit, refProfit) {
     <ul style="list-style: none; padding-left: 0;">
     <li><strong>Plan Name:</strong> ${getPlan.name}</li>
     <li><strong>Amount Deposited:</strong> ${amount} USD</li>
-    <li><strong>Profit Earned:</strong>${profit} USD</li>
+    <li><strong>Profit Earned:</strong> ${profit} USD</li>
   </ul>
   <p>Your commitment and trust in our platform have led to this fruitful outcome. We deeply appreciate your belief in our investment plans and services.</p>`;
     const subject = `Congratulations on Your Successful Investment!`;
