@@ -176,7 +176,7 @@ async function sendVerificationLink(
 ) {
   const subject = link?.isForgotPassword
     ? "Forgot Password?"
-    : "Verify Your Email To Start Earning!!!";
+    : "Verify Your Email";
   const template = link?.isForgotPassword ? "forgotPassword" : "verify_email";
   const msg = link;
   async function successFn(params) {
