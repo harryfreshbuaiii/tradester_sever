@@ -88,7 +88,7 @@ const createUser = asyncHandler(async (req, res) => {
           "Email verification link has been successfully sent to " +
             truncateEmail(email) +
             "." +
-            " It is valid for only 5mins.",
+            " It is valid for only 5mins. Check your spam folder if you can't find it in your inbox.",
           { JWTToken }
         );
       },
@@ -163,7 +163,7 @@ const resendVerificationLink = asyncHandler(async (req, res) => {
           "Email verification link has been successfully sent to " +
             truncateEmail(getEmail.email) +
             "." +
-            " It is valid for only 2mins."
+            " It is valid for only 5mins. Check your spam folder if you can't find it in your inbox."
         ),
       { link: link + token, isForgotPassword: isForgotPassword ? true : false },
       token
